@@ -1,0 +1,384 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+        <link type="text/css" rel="stylesheet" href="../../../Public/easyui/themes/default/easyui.css">
+        <link type="text/css" rel="stylesheet" href="../../../Public/easyui/themes/icon.css">
+         <link type="text/css" rel="stylesheet"  href="../../../Public/css/easyui.css">
+        <script type="text/javascript" src="../../../Public/easyui/jquery.min.js"></script>
+        <script type="text/javascript" src="../../../Public/easyui/jquery.easyui.min.js"></script>
+        <script type="text/javascript" src="../../../Public/easyui/locale/easyui-lang-zh_CN.js"></script>
+	<title></title>
+	<style type="text/css">
+       
+    </style>
+    <script type="text/javascript">
+    $(function(){
+    	//自定义验证规则
+    	$.extend($.fn.validatebox.defaults.rules,{
+    		validUserName:{
+    			validator:function(value,param){
+					return  /^[a-zA-Z]{1}\w{4,12}$/.test(value);
+
+				},
+				message:'用户必须由英文字母开头，5-12位英文字母、数字或下划线组成'
+			},
+			validClassid:{
+				validator:function(value,param){
+					if($(param[1]).combo('getValue')==4){
+						
+						if($(param[0]).combo('getValue')<0){
+							return false;	
+						}
+					}
+					return true;
+				},
+				message:'当用户类型为学生时，班级为必选项'
+
+			}
+        });
+		
+
+
+
+
+
+
+
+        
+    	$('#win').window('close'); 
+        $('#dg').datagrid({    
+            url:'http://localhost:8080/MyTKP/index.php/Home/User/loadUserByPage?pageNo=1&pageSize=10',   
+            striped:true,
+            method:"get",
+		    fitColumns:true, 
+		    pagination:true, 
+		    rownumbers:true,
+		    frozenColumns:[[
+                {field:'check',checkbox:true}
+		    ]], 
+            columns:[[    
+                {field:'uid',title:'用户id',width:100,align:'center'},
+                {field:'userName',title:'用户名',width:100,align:'center'},
+                {field:'userPass',hidden:true},
+                {field:'userType',title:'用户类型',width:100,align:'center'},
+                {field:'trueName',title:'姓名',width:100,align:'center'}, 
+                {field:'sex',title:'性别',width:100,align:'center'}, 
+                {field:'birthday',title:'生日',width:100,align:'center'},
+                {field:'phone',title:'电话',width:100,align:'center'},    
+                {field:'school',title:'学校',width:100,align:'center'},
+                {field:'classid',title:'班级',width:100,align:'center'}, 
+                {field:'education',title:'学历',width:100,align:'center'},
+                {field:'workYear',title:'工作年限',width:100,align:'center'},    
+                {field:'regTime',title:'注册时间',width:100,align:'center'},  
+                {field:'status',title:'状态',width:100,align:'center'},
+                {field:'pid',title:'省份',width:100,align:'center'},  
+                {field:'cid',title:'城市',width:100,align:'center'}, 
+                {field:'address',title:'地址',width:100,align:'center',}    
+   				]], 
+        	toolbar:[{
+                iconCls: 'icon-adduser',
+                text:'添加',
+                handler: function(){
+                    $("#ff")[0].reset();
+                    //每次打开窗口前加载
+                    //加载下拉列表选项数据 
+  					loadComboboxData();
+ 					$("#tr_status").hide();
+					$('#win').window('open');
+                }
+             },'-',{
+  				iconCls: 'icon-modify',
+  				text:'修改',
+  				handler: function(){
+  					$("#ff")[0].reset();
+  					var selectedRow = $("#dg").datagrid("getSelections");
+  					if(selectedRow.length == 0){
+ 							alert("请选择需要修改的数据哦");
+ 							return;
+  					}
+  					if(selectedRow.length > 1){
+ 							alert("对不起,只能选择一行数据哦");
+ 							return;
+  					}
+
+  					//加载下拉列表选项数据 
+  					loadComboboxData();
+                	
+  					$("#tr_status").show();
+					$('#win').window('open');
+  					var row = selectedRow[0];
+  					//回填表单数据
+//   					$("#uid").val(row.uid);
+  					$.getJSON("../controller/main.php?uid="+row.uid+"&controller=UserController&methodName=loadUserByID",{},function(data){
+  						$("#uid").val(data[0][0]);
+  						$("#userName").val(data[0][1]);
+  						$("#userPass").val(data[0][2]);
+  						$("#userType").combobox('select',data[0][3]);
+  						$("#trueName").val(data[0][4]);
+  						$("input[name=sex]:checked").val(data[0][5]);
+  						$("#birthday").datebox("setValue",data[0][6]);
+  						$("#phone").val(data[0][7]);
+  						$("#school").val(data[0][8]);
+  						$("#classid").combobox('select',data[0][9]);
+  						$("#education").combobox('select',data[0][10]);
+  						$("#workYear").val(data[0][11]);
+  						$("#status").combobox('select',data[0][13]);
+  						$("#pid").combobox('select',data[0][14]);
+  						$("#cid").combobox('select',data[0][15]);
+  						$("#address").val(data[0][16]);
+  					});
+  					$("#win").window('open');
+  				}
+  			}]
+
+		
+
+
+
+	    		        
+  		}); 
+  		
+		//翻页功能/翻页工具
+		var pager  = $("#dg").datagrid('getPager');
+		
+		pager.pagination({
+			onSelectPage:function(pageNumber, pageSize){
+				refreshData(pageNumber,pageSize);
+			}
+		});
+	});
+
+    function loadComboboxData(){
+    	$('#userType').combobox({    
+    	    url:'../controller/main.php?controller=UserController&methodName=loadUser',    
+    	    valueField:'0',    
+    	    textField:'1' ,
+    	    
+    	}),
+    	
+    	$('#status').combobox({    
+    	    url:'../controller/main.php?controller=UserController&methodName=loadUserSta',    
+    	    valueField:'0',    
+    	    textField:'1',
+    	    value:'1'
+    	}),
+    	$('#classid').combobox({    
+    	    url:'../controller/main.php?controller=UserController&methodName=loadUserClass',    
+    	    valueField:'0',    
+    	    textField:'1',
+    	    value:'-1'
+    	}),
+    	$('#education').combobox({    
+    	    url:'../controller/main.php?controller=UserController&methodName=loadUserEid',    
+    	    valueField:'0',    
+    	    textField:'1' ,
+    	    value:'-1'  
+    	});
+    	$('#pid').combobox({    
+    	    url:'../controller/main.php?controller=UserController&methodName=loadUserPid',    
+    	    valueField:'0',    
+    	    textField:'1' ,
+    	    onChange:function(province){
+                $('#cid').combobox({
+                    valueField:'0', 
+                    textField:'1', 
+                    url:'../controller/main.php?pid='+$('#pid').combo('getValue')+'&controller=UserController&methodName=loadUserCid',
+                    value:'-1'
+	            });
+            }
+        });  
+    }
+	
+	//修改文件
+	function saveOrUpdateUser(){
+		var r = $("#ff").form("validate");
+		if(r){
+			var uid = $("#uid").val();
+			var userName = $("#userName").val();
+			var userPass = $("#userPass").val();
+			var userType = $("#userType").combo('getValue');
+			var trueName = $("#trueName").val();
+			var sex = $("input[name=sex]:checked").val();
+			var birthday = $("#birthday").combo('getValue');
+			var phone= $("#phone").val();
+			var school= $("#school").val();
+			var classid = $("#classid").combo('getValue');
+			var education= $("#education").combo('getValue');
+			var workYear= $("#workYear").val();
+			var status = $("#status").combo('getValue');
+			var pid = $("#pid").combo('getValue');
+			var cid = $("#cid").combo('getValue');
+			var address= $("#address").val();
+			var uid = $("#uid").val();
+			$.post("../controller/main.php?controller=UserController&methodName=saveOrUpdataUser",{
+				"uid":uid,
+				"userName" :userName,
+				"userPass" :userPass,
+				"userType" : userType,
+				"trueName": trueName ,
+				"sex"     : sex ,
+				"birthday":birthday ,
+				"phone"	:phone,
+				"school":school,
+				"classid"  : classid,
+				"education":education,
+				"workYear":workYear,
+				"status"   : status,
+				"pid":pid,
+				"cid":cid,
+				"address":address
+			},function(data){
+				if(data == "insertOK"){
+					$.messager.alert('消息','用户添加成功','info',function(){
+					refreshData(1,10);
+					$('#win').window('close');
+					$('#ff').form('reset');
+					});
+					
+				}else if(data == "updateOK"){
+		 			$.messager.alert('消息','用户修改成功','info',function(){
+		 			refreshData(1,10);
+			 		$('#win').window('close');
+			 		$('#ff').form('reset');
+			 		});
+		 		
+
+
+		 		}
+			},"text");
+
+
+
+		}
+		
+		
+	}
+
+    </script>
+
+</head>
+
+    <body >
+    	<table id="dg"></table>
+    	<div id="win" class="easyui-window" title="添加用户信息" style="width:600px;height:460px"   
+        data-options="iconCls:'icon-adduser',modal:true,collapsible:false,minimizable:false,maximizable:false,resizable:false">   
+   		 <form id="ff" method="post">
+   		 	<input type="hidden" id="uid"/> 
+   		 	<table style="width: 60%;margin: auto;margin-top:20px;">
+   		 		<tr>
+   		 			<td align="right"><label for="userName">用户名:</label> </td>
+   		 			<td><input class="easyui-validatebox in" type="text" id="userName" name="userName" data-options="required:true,validType:'validUserName'" />   </td>
+   		 		</tr>
+   		 		<tr >
+   		 			<td  align="right"><label for="userPass">密码:</label>  </td>
+   		 			<td><input class="easyui-validatebox in" type="text"  id="userPass"  name="passWord" data-options="required:true" />     </td>
+   		 		</tr>
+   		 		<tr>
+   		 			<td align="right"><label for="userType">用户类型:</label></td>
+   		 			<td>
+   		 				<select id="userType" class="easyui-combobox in" name="userType" style="width:150px" data-options="editable:false,required:true"></select>
+   		 			
+   		 			</td>
+   		 		
+   		 		</tr>
+   		 		<tr >
+   		 			<td  align="right"><label for="trueName">真实姓名:</label>  </td>
+   		 			<td><input class="easyui-validatebox in" type="text"  id="trueName"  name="trueName" data-options="required:true" />     </td>
+   		 		</tr>
+   		 		<tr >
+   		 			<td  align="right"><label for="sex">性别:</label></td>
+   		 			<td>
+   		 				<input type="radio" id="sex1" name="sex" value="1"  /><label>男</label>
+   		 				<input type="radio" id="sex2" name="sex" value="0" checked/><label>女</label>
+   		 			</td>
+   		 		</tr>
+   		 		<tr >
+   		 			<td  align="right"><label for="birthday">生日:</label>  </td>
+   		 			<td><input class="easyui-datebox in" type="text"  id="birthday"  name="birthday" data-options="editable:false" />     </td>
+   		 		</tr>
+   		 		<tr >
+   		 			<td  align="right"><label for="phone">电话:</label>  </td>
+   		 			<td><input class="easyui-validatebox in" type="text"  id="phone"  name="phone" data-options="" />     </td>
+   		 		</tr>
+   		 		<tr >
+   		 			<td  align="right"><label for="school">学校:</label>  </td>
+   		 			<td><input class="easyui-validatebox in" type="text"  id="school"  name="school" data-options="" />     </td>
+   		 		</tr>
+   		 		<tr >
+   		 			<td  align="right"><label for="classid">班级:</label>  </td>
+   		 			<td>
+   		 				<select id="classid" class="easyui-combobox in" name="classid" style="width:150px " data-options="editable:false,validType:'validClassid[\'#classid\',\'#userType\']'">
+   		 					<option value="-1">请选择班级</option>
+   		 				</select>
+   		 			
+   		 			</td>
+   		 		</tr>
+   		 		<tr >
+   		 			<td  align="right"><label for="education">学历:</label>  </td>
+   		 			<td>
+   		 				<select id="education" class="easyui-combobox in" name="education" style="width:150px " data-options="editable:false">
+   		 						<option value="-1">请选择班级</option>
+   		 				</select>
+   		 			</td>
+   		 		</tr>
+   		 		<tr >
+   		 			<td  align="right"><label for="workYear">工作年限:</label>  </td>
+   		 			<td><input class="easyui-validatebox in" type="text"  id="workYear"  name="workYear" data-options="" />     </td>
+   		 		</tr>
+   		 		
+   		 		<tr id="tr_status" style="display: none;">
+   		 			<td  align="right"><label for="status">状态:</label>  </td>
+   		 			<td>
+   		 				<select id="status" class="easyui-combobox in" name="status" style="width:150px " data-options="editable:false"></select>
+   		 			
+   		 			</td>
+   		 		</tr>
+   		 		<tr >
+   		 			<td  align="right"><label for=" pid">省份:</label>  </td>
+   		 			<td>
+   		 				<select id="pid" class="easyui-combobox in" name="pid" style="width:70px " data-options="editable:false">
+   		 					<option value="-1">请选择省份</option>
+   		 				</select>
+   		 			
+   		 			
+   		 			<label for="cid">城市:</label>
+   		 			
+   		 				<select id="cid" class="easyui-combobox in" name="cid" style="width:70px " data-options="editable:false">
+   		 				
+   		 				</select>
+   		 			
+   		 			</td>
+   		 		</tr>
+   		 		<tr >
+   		 			<td  align="right"><label for="address">地址:</label>  </td>
+   		 			<td><input class="easyui-validatebox in" type="text"  id="address"  name="address" data-options="" />     </td>
+   		 		</tr>
+  
+   		 		<tr>
+   		 			<td align="center" colspan="2">
+   		 				<a id="btn" href="javascript:saveOrUpdateUser();" class="easyui-linkbutton" data-options="iconCls:'icon-submit'">确认</a>
+
+   		 				
+   		 			</td>
+   		 			
+   		 		
+   		 		</tr>
+   		 	</table>
+        
+		</form>  
+
+   		   
+		</div>  
+
+    	
+    
+    </body>
+
+ 
+
+</html>
+
+

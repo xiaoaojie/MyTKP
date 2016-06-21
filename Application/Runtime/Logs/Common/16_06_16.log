@@ -1,0 +1,12 @@
+[ 2016-06-16T10:51:38+08:00 ] 127.0.0.1 /MyTKP/index.php/tttt
+INFO: [ app_init ] --START--
+INFO: Run Behavior\BuildLiteBehavior [ RunTime:0.002001s ]
+INFO: [ app_init ] --END-- [ RunTime:0.009001s ]
+ERR: 无法加载模块:Tttt
+
+[ 2016-06-16T10:51:38+08:00 ] 127.0.0.1 /MyTKP/index.php/tttt
+INFO: [ app_init ] --START--
+INFO: Run Behavior\BuildLiteBehavior [ RunTime:0.000000s ]
+INFO: [ app_init ] --END-- [ RunTime:0.003000s ]
+ERR: 无法加载模块:Tttt
+

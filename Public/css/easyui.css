@@ -1,0 +1,14 @@
+@CHARSET "UTF-8";
+
+#top_left{
+	width:200px;
+	height:95px;
+	
+	float:left;
+}
+#top_right{
+	width:200px;
+	height:95px;
+
+	float:right;
+}
